@@ -9,40 +9,34 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import org.osmdroid.api.IMapController;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
+import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
+import com.boloutaredoubeni.neighborly.fragments.MapFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-  private final int DEFAULT_ZOOM_LEVEL = 15;
-
-  private MapView mMap;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+    FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
+        Snackbar.make(view, "Replace with your own action",
+                      Snackbar.LENGTH_LONG)
+            .setAction("Action", null)
+            .show();
       }
     });
 
     if (savedInstanceState == null) {
       setupDashboardFragment();
     }
-    setupMap();
-
-
-
+    setupMapFragment();
   }
 
   @Override
@@ -59,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     // as you specify a parent activity in AndroidManifest.xml.
     int id = item.getItemId();
 
-    //noinspection SimplifiableIfStatement
+    // noinspection SimplifiableIfStatement
     if (id == R.id.action_settings) {
       return true;
     }
@@ -67,30 +61,32 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
-  /**
-   * Setups up the map for the display. Centers the map at the last known position and displays a marker at the last known GPS position
-   */
-  private void setupMap() {
-    mMap = (MapView)findViewById(R.id.map);
-    mMap.setTileSource(TileSourceFactory.MAPNIK);
-//     FIXME: remake the zoom buttons
-    mMap.setBuiltInZoomControls(true);
-    mMap.setMultiTouchControls(true);
-
-
-    IMapController controller = mMap.getController();
-    controller.setZoom(DEFAULT_ZOOM_LEVEL);
-    GeoPoint point = new GeoPoint(40.7398848, -73.9922705);
-    controller.setCenter(point);
-
-    // TODO: display a marker
-  }
 
   private void setupDashboardFragment() {
     if (findViewById(R.id.dashboard_frame) != null) {
       DashboardFragment dashboardFragment = new DashboardFragment();
       dashboardFragment.setArguments(getIntent().getExtras());
-      getFragmentManager().beginTransaction().add(R.id.dashboard_frame, dashboardFragment, "_dashboard").commit();
+      getFragmentManager()
+          .beginTransaction()
+          .add(R.id.dashboard_frame, dashboardFragment, "_map")
+          .commit();
     }
   }
+
+  private void setupMapFragment() {
+    if (findViewById(R.id.map_frame) != null) {
+      MapFragment mapFragment = new MapFragment();
+      mapFragment.setArguments(getIntent().getExtras());
+      getFragmentManager()
+          .beginTransaction()
+          .add(R.id.map_frame, mapFragment, "_dashboard")
+          .commit();
+    }
+  }
+
+//  private <T extends Fragment> void setupFragment(@IdRes int resource) {
+//    if (findViewById(resource) != null){
+//      T fragment = new T();
+//    }
+//  }
 }

@@ -9,13 +9,13 @@
         card_view:cardElevation="8dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="Hello World!"/>
-        </LinearLayout>
+        </RelativeLayout>
     </android.support.v7.widget.CardView>
 </RelativeLayout>
