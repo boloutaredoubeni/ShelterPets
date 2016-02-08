@@ -7,29 +7,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.osmdroid.ResourceProxy;
+import com.boloutaredoubeni.neighborly.views.CustomMapView;
+
 import org.osmdroid.api.IMapController;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.util.ResourceProxyImpl;
 import org.osmdroid.views.MapView;
 
 /**
  * Copyright 2016 Boloutare Doubeni
  */
-public class MapFragment extends Fragment{
+public class MapFragment extends Fragment {
 
   private final int DEFAULT_ZOOM_LEVEL = 15;
 
   protected MapView mMapView;
-  protected ResourceProxy mResourceProxy;
-
   public MapFragment() {}
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mResourceProxy = new ResourceProxyImpl(inflater.getContext().getApplicationContext());
-    mMapView = new MapView(inflater.getContext(), mResourceProxy);
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                           Bundle savedInstanceState) {
+    mMapView = new CustomMapView(inflater.getContext());
     return mMapView;
   }
 
@@ -44,6 +42,8 @@ public class MapFragment extends Fragment{
     controller.setZoom(DEFAULT_ZOOM_LEVEL);
     GeoPoint point = new GeoPoint(40.7398848, -73.9922705);
     controller.setCenter(point);
+
+    mMapView.setClickable(false);
   }
 
   @Override
@@ -51,6 +51,5 @@ public class MapFragment extends Fragment{
     super.onDetach();
     mMapView.onDetach();
     mMapView = null;
-    mResourceProxy = null;
   }
 }

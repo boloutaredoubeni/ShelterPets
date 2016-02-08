@@ -1,4 +1,4 @@
-package com.boloutaredoubeni.neighborly;
+package com.boloutaredoubeni.neighborly.activities;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -9,11 +9,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.boloutaredoubeni.neighborly.R;
 import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
 import com.boloutaredoubeni.neighborly.fragments.MapFragment;
 
 public class MainActivity extends AppCompatActivity {
-
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
-
   private void setupDashboardFragment() {
     if (findViewById(R.id.dashboard_frame) != null) {
       DashboardFragment dashboardFragment = new DashboardFragment();
@@ -83,10 +82,4 @@ public class MainActivity extends AppCompatActivity {
           .commit();
     }
   }
-
-//  private <T extends Fragment> void setupFragment(@IdRes int resource) {
-//    if (findViewById(resource) != null){
-//      T fragment = new T();
-//    }
-//  }
 }
