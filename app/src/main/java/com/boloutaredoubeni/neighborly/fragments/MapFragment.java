@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.boloutaredoubeni.neighborly.activities.MainActivity;
 import com.boloutaredoubeni.neighborly.models.Location;
-import com.boloutaredoubeni.neighborly.views.CustomMapView;
 import com.boloutaredoubeni.neighborly.views.LocationOverlayItem;
 
 import org.osmdroid.ResourceProxy;
@@ -42,7 +41,7 @@ public class MapFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    mMapView = new CustomMapView(inflater.getContext());
+    mMapView = new MapView(inflater.getContext());
     return mMapView;
   }
 
@@ -55,7 +54,6 @@ public class MapFragment extends Fragment {
 
     IMapController controller = mMapView.getController();
     controller.setZoom(DEFAULT_ZOOM_LEVEL);
-    // TODO: get current location from the main activity
 
     List<OverlayItem> items = new ArrayList<>();
     // TODO: Add points based on the location from the server || db if valid

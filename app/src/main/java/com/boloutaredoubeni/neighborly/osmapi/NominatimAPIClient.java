@@ -7,4 +7,4 @@ package com.boloutaredoubeni.neighborly.osmapi;
  *
  * http://wiki.openstreetmap.org/wiki/Nominatim
  */
-public class NominaimAPIClient {}
+public class NominatimAPIClient {}
