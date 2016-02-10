@@ -35,15 +35,12 @@ public class MapFragment extends Fragment {
   public void onActivityCreated(Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     mMapView.setMultiTouchControls(true);
-    mMapView.setBuiltInZoomControls(true);
     mMapView.setTilesScaledToDpi(true);
 
     IMapController controller = mMapView.getController();
     controller.setZoom(DEFAULT_ZOOM_LEVEL);
     GeoPoint point = new GeoPoint(40.7398848, -73.9922705);
     controller.setCenter(point);
-
-    mMapView.setClickable(false);
   }
 
   @Override
