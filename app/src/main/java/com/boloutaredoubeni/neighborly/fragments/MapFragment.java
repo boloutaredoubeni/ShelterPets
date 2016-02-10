@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.boloutaredoubeni.neighborly.activities.MainActivity;
 import com.boloutaredoubeni.neighborly.models.Location;
 import com.boloutaredoubeni.neighborly.views.CustomMapView;
 import com.boloutaredoubeni.neighborly.views.LocationOverlayItem;
@@ -54,29 +55,33 @@ public class MapFragment extends Fragment {
 
     IMapController controller = mMapView.getController();
     controller.setZoom(DEFAULT_ZOOM_LEVEL);
-    GeoPoint point = new GeoPoint(40.7398848, -73.9922705);
-    controller.setCenter(point);
+    // TODO: get current location from the main activity
 
     List<OverlayItem> items = new ArrayList<>();
     // TODO: Add points based on the location from the server || db if valid
+    // FIXME: Handle a null value
     Location location =
-        new Location.Builder()
-            .name("GA")
-            .amenity("school")
-            .coordinates(point.getLatitude(), point.getLongitude())
-            .build();
+        (Location)getArguments().getSerializable(MainActivity.USER_LOCATION);
+    controller.setCenter(location != null
+                             ? location.getCoordinates().asGeoPoint()
+                             : new GeoPoint(40.7398848, -73.9922705));
     items.add(LocationOverlayItem.bindWith(location));
 
-    mOverlay = new ItemizedOverlayWithFocus<>(items,
-        new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+    mOverlay = new ItemizedOverlayWithFocus<>(
+        items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
           @Override
-          public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+          public boolean onItemSingleTapUp(final int index,
+                                           final OverlayItem item) {
             Log.d(TAG, "Single tapped");
             // TODO: display info in bottom screen
+            // 1. Send data to the detail activity
+            // 2. pop the previous frag if its a detail for a marker
+            // 3. push the previous if its a summary frag
             return true;
           }
           @Override
-          public boolean onItemLongPress(final int index, final OverlayItem item) {
+          public boolean onItemLongPress(final int index,
+                                         final OverlayItem item) {
             Log.d(TAG, "Long Press");
             return false;
           }

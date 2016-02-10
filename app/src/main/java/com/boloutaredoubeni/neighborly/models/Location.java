@@ -2,16 +2,19 @@ package com.boloutaredoubeni.neighborly.models;
 
 import android.support.annotation.Nullable;
 
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
  * Copyright 2016 Boloutare Doubeni
  */
-public class Location {
+public class Location implements Serializable {
+
+  static final long serialVersionUID = 1L;
 
   private final String mName;
-  private final Coordinates mCoordinates;
+  private Coordinates mCoordinates;
   private String mAmenity; // or shop if they are different
   private String mHours;
   private URL mURL;
@@ -23,6 +26,10 @@ public class Location {
   public String getName() { return mName; }
 
   public Coordinates getCoordinates() { return mCoordinates; }
+
+  public void setCoordinates(double latitude, double longitude) {
+    mCoordinates = new Coordinates(latitude, longitude);
+  }
 
   @Nullable
   public String getHours() {

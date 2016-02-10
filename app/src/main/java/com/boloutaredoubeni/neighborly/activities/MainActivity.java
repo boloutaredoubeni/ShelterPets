@@ -1,11 +1,16 @@
 package com.boloutaredoubeni.neighborly.activities;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,16 +19,17 @@ import com.boloutaredoubeni.neighborly.R;
 import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
 import com.boloutaredoubeni.neighborly.fragments.MapFragment;
 import com.boloutaredoubeni.neighborly.models.Location;
-import com.boloutaredoubeni.neighborly.osmapi.MapDataXMLParser;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.util.List;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity
+    extends AppCompatActivity implements LocationListener {
 
   private static final String TAG = MainActivity.class.getCanonicalName();
+  private static final int MILE = 1609;
+  private static final int TWENTY_MINS = 0x124F80;
+  public static final String USER_LOCATION = "u53r10c4t10n";
+
+  private LocationManager mLocationManager;
+  private Location mUserLocation;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -31,19 +37,8 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-    Location userLocation = new Location.Builder()
-                                .name("General Assembly")
-                                .coordinates(40.7398848, -73.9922705)
-                                .build();
-    try {
-      List<Location> locations =
-          MapDataXMLParser.parse(getAssets().open("map.xml"));
-      for (Location location : locations) {
-        Log.d(TAG, location.toString());
-      }
-    } catch (IOException | XmlPullParserException ex) {
-      Log.e(TAG, ex.getClass().getCanonicalName() + " " + ex.getMessage());
-    }
+
+    setupUserLocation();
 
     FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
@@ -84,13 +79,16 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  // TODO: DRY these out
   private void setupDashboardFragment() {
     if (findViewById(R.id.dashboard_frame) != null) {
       DashboardFragment dashboardFragment = new DashboardFragment();
-      dashboardFragment.setArguments(getIntent().getExtras());
+      Bundle bundle = new Bundle();
+      bundle.putSerializable(USER_LOCATION, mUserLocation);
+      dashboardFragment.setArguments(bundle);
       getFragmentManager()
           .beginTransaction()
-          .add(R.id.dashboard_frame, dashboardFragment, "_map")
+          .add(R.id.dashboard_frame, dashboardFragment)
           .commit();
     }
   }
@@ -98,11 +96,42 @@ public class MainActivity extends AppCompatActivity {
   private void setupMapFragment() {
     if (findViewById(R.id.map_frame) != null) {
       MapFragment mapFragment = new MapFragment();
-      mapFragment.setArguments(getIntent().getExtras());
+      Bundle bundle = new Bundle();
+      bundle.putSerializable(USER_LOCATION, mUserLocation);
+      mapFragment.setArguments(bundle);
       getFragmentManager()
           .beginTransaction()
-          .add(R.id.map_frame, mapFragment, "_dashboard")
+          .add(R.id.map_frame, mapFragment)
           .commit();
     }
   }
+
+  private void setupUserLocation() {
+    mLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+    // TODO: handle permissions
+    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                                            TWENTY_MINS, MILE, this);
+    mUserLocation = new Location.Builder()
+                        .name("General Assembly")
+                        .coordinates(40.7398848, -73.9922705)
+                        .build();
+  }
+
+  @Override
+  public void onLocationChanged(android.location.Location location) {
+    double latitude = location.getLatitude();
+    double longitude = location.getLongitude();
+    mUserLocation.setCoordinates(latitude, longitude);
+
+    // TODO: Make sure the map and the details are updated
+  }
+
+  @Override
+  public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+  @Override
+  public void onProviderEnabled(String provider) {}
+
+  @Override
+  public void onProviderDisabled(String provider) {}
 }
