@@ -17,5 +17,4 @@ public class CustomMapView extends MapView {
     // overlayed
     super.scrollTo(x, y);
   }
-
 }
