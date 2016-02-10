@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import com.boloutaredoubeni.neighborly.activities.MainActivity;
 import com.boloutaredoubeni.neighborly.models.Location;
-import com.boloutaredoubeni.neighborly.views.LocationOverlayItem;
+import com.boloutaredoubeni.neighborly.views.UserLocationOverlayItem;
 
 import org.osmdroid.ResourceProxy;
 import org.osmdroid.api.IMapController;
@@ -67,7 +67,7 @@ public class MapFragment extends Fragment {
     controller.setCenter(location != null
                              ? location.getCoordinates().asGeoPoint()
                              : new GeoPoint(40.7398848, -73.9922705));
-    items.add(LocationOverlayItem.bindWith(location));
+    items.add(UserLocationOverlayItem.bindWith(location));
 
     mOverlay = new ItemizedOverlayWithFocus<>(
         items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {

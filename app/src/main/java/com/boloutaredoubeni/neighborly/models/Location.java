@@ -18,6 +18,9 @@ public class Location implements Serializable {
   private String mAmenity; // or shop if they are different
   private String mHours;
   private URL mURL;
+  private boolean mFavorited = false;
+  private String mLastVisited;
+
   private Location(String name, Coordinates coordinates) {
     mName = name;
     mCoordinates = coordinates;
@@ -46,6 +49,9 @@ public class Location implements Serializable {
     return mURL;
   }
 
+  public boolean isFavorited() { return mFavorited; }
+
+  private void toggleFavorited() { mFavorited = !mFavorited; }
   public static class Builder {
     private String mName;
     private Coordinates mCoordinates;
