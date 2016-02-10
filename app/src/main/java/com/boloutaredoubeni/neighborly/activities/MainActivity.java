@@ -1,14 +1,10 @@
 package com.boloutaredoubeni.neighborly.activities;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -17,11 +13,12 @@ import android.view.View;
 
 import com.boloutaredoubeni.neighborly.R;
 import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
+import com.boloutaredoubeni.neighborly.fragments.DetailFragment;
 import com.boloutaredoubeni.neighborly.fragments.MapFragment;
 import com.boloutaredoubeni.neighborly.models.Location;
 
-public class MainActivity
-    extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity
+    implements LocationListener, MapFragment.OnOverlayItemClickedListener {
 
   private static final String TAG = MainActivity.class.getCanonicalName();
   private static final int MILE = 1609;
@@ -134,4 +131,15 @@ public class MainActivity
 
   @Override
   public void onProviderDisabled(String provider) {}
+
+  @Override
+  public void update(Location location) {
+    DetailFragment fragment = new DetailFragment();
+    fragment.updateLocation(location);
+    // TODO: remove the detail fragment
+    getFragmentManager()
+        .beginTransaction()
+        .replace(R.id.dashboard_frame, fragment)
+        .commit();
+  }
 }

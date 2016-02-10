@@ -1,6 +1,7 @@
 package com.boloutaredoubeni.neighborly.fragments;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -35,6 +36,9 @@ public class MapFragment extends Fragment {
   protected MapView mMapView;
   protected ItemizedOverlayWithFocus<OverlayItem> mOverlay;
   private ResourceProxy mResourceProxy;
+
+  /* package */ OnOverlayItemClickedListener mOnOverlayItemClickedListener;
+
   public MapFragment() {}
 
   @Nullable
@@ -58,7 +62,7 @@ public class MapFragment extends Fragment {
     List<OverlayItem> items = new ArrayList<>();
     // TODO: Add points based on the location from the server || db if valid
     // FIXME: Handle a null value
-    Location location =
+    final Location location =
         (Location)getArguments().getSerializable(MainActivity.USER_LOCATION);
     controller.setCenter(location != null
                              ? location.getCoordinates().asGeoPoint()
@@ -72,9 +76,11 @@ public class MapFragment extends Fragment {
                                            final OverlayItem item) {
             Log.d(TAG, "Single tapped");
             // TODO: display info in bottom screen
-            // 1. Send data to the detail activity
+            // 1. Send data to the detail fragment
+
             // 2. pop the previous frag if its a detail for a marker
             // 3. push the previous if its a summary frag
+            sendLocationData(location);
             return true;
           }
           @Override
@@ -90,9 +96,29 @@ public class MapFragment extends Fragment {
   }
 
   @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    try {
+      mOnOverlayItemClickedListener = (OnOverlayItemClickedListener)context;
+    } catch (ClassCastException ex) {
+      throw new ClassCastException(context.toString() +
+                                   " must implement OnOverlayItemClicked");
+    }
+  }
+
+  @Override
   public void onDetach() {
-    super.onDetach();
     mMapView.onDetach();
     mMapView = null;
+    mOnOverlayItemClickedListener = null;
+    super.onDetach();
+  }
+
+  private void sendLocationData(Location location) {
+    mOnOverlayItemClickedListener.update(location);
+  }
+
+  public interface OnOverlayItemClickedListener {
+    void update(Location location);
   }
 }
