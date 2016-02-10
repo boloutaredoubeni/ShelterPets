@@ -13,13 +13,16 @@ public class LocationTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void builderRequiresValidParams() {
-    location = new Location.Builder("Some where over the rainbow").build();
+    location =
+        new Location.Builder().name("Some where over the rainbow").build();
   }
 
   @Test
   public void locationBuilderCreatesValidObjects() {
-    location =
-        new Location.Builder("Some other place").coordinates(0, 0).build();
+    location = new Location.Builder()
+                   .name("Some other place")
+                   .coordinates(0, 0)
+                   .build();
     assertNotNull(location);
   }
 }

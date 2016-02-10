@@ -3,6 +3,8 @@ package com.boloutaredoubeni.neighborly.models;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
+import org.osmdroid.util.GeoPoint;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,14 +17,16 @@ public class Coordinates {
 
   final static double DISTANCE = 3218.69;
 
-  Coordinates(final double longitude, final double latitude) {
+  Coordinates(final double latitude, final double longitude) {
     mLongitude = longitude;
     mLatitude = latitude;
   }
 
-  public LatLng asLatLng() { return new LatLng(mLongitude, mLatitude); }
+  public LatLng asLatLng() { return new LatLng(mLatitude, mLongitude); }
 
-  /* package */ List<LatLng> getBox() {
+  public GeoPoint asGeoPoint() { return new GeoPoint(mLatitude, mLongitude); }
+
+  public List<LatLng> getBox() {
     final List<LatLng> latLngList = new LinkedList<>();
     final LatLng coordinates = this.asLatLng();
 

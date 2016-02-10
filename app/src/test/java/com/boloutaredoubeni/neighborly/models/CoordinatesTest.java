@@ -1,5 +1,6 @@
 package com.boloutaredoubeni.neighborly.models;
 
+import com.boloutaredoubeni.neighborly.osmapi.OSMXAPIClient;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
@@ -30,8 +31,15 @@ public class CoordinatesTest {
     // Verify the lengths are the same
     assertEquals(latLngs.size(), Direction.values().length);
     assertTrue(checkCorners(latLngs));
+
+    Location ga = new Location.Builder()
+                      .name("General Assembly")
+                      .coordinates(40.7398848, -73.9922705)
+                      .build();
+    System.out.println("You need this " + OSMXAPIClient.buildBoxParams(ga));
   }
 
+  // Check that the corners are the right positions and are in order
   private boolean checkCorners(List<LatLng> latLngs) {
     final Direction[] directions = Direction.values();
     for (int i = 0; i < latLngs.size(); ++i) {

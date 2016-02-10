@@ -4,10 +4,10 @@ package com.boloutaredoubeni.neighborly.models;
  * Copyright 2016 Boloutare Doubeni
  */
 public enum Direction {
-  NORTHEAST(45),
-  SOUTHEAST(135),
-  SOUTHWEST(225),
-  NORTHWEST(315);
+  WEST(225),
+  SOUTH(180),
+  EAST(90),
+  NORTH(0);
 
   private double mHeading;
 
