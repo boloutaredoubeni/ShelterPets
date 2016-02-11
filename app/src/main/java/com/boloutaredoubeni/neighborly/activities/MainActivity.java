@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.boloutaredoubeni.neighborly.R;
+import com.boloutaredoubeni.neighborly.db.DatabaseTable;
 import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
 import com.boloutaredoubeni.neighborly.fragments.DetailFragment;
 import com.boloutaredoubeni.neighborly.fragments.MapFragment;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity
   private LocationManager mLocationManager;
   private Location mUserLocation;
   private GoogleApiClient mGoogleApiClient;
+  private DatabaseTable mDatabaseTable;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -68,10 +70,9 @@ public class MainActivity extends AppCompatActivity
       setupDashboardFragment();
     }
     setupMapFragment();
+    setupDatabase();
     getApiData();
   }
-
-  // FIXME: App crashes on location
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -111,9 +112,6 @@ public class MainActivity extends AppCompatActivity
   private void setupDashboardFragment() {
     if (findViewById(R.id.dashboard_frame) != null) {
       DashboardFragment dashboardFragment = new DashboardFragment();
-      Bundle bundle = new Bundle();
-      bundle.putSerializable(USER_LOCATION, mUserLocation);
-      dashboardFragment.setArguments(bundle);
       getFragmentManager()
           .beginTransaction()
           .add(R.id.dashboard_frame, dashboardFragment)
@@ -177,7 +175,6 @@ public class MainActivity extends AppCompatActivity
     }
     mUserLocation.setCoordinates(latitude, longitude);
 
-    // TODO: Make sure the map and the details are updated
     DetailFragment detailFragment =
         ((DetailFragment)getFragmentManager().findFragmentByTag(
             DetailFragment.TAG));
@@ -189,6 +186,7 @@ public class MainActivity extends AppCompatActivity
           new GeoPoint(latitude, longitude));
     }
     getApiData();
+    // TODO: send a signal to redraw the entire view
   }
 
   @Override
@@ -206,7 +204,6 @@ public class MainActivity extends AppCompatActivity
     detailFragment.updateLocation(location);
 
     //    PhotoViewFragment photoViewFragment = new PhotoViewFragment();
-    // TODO: remove the detail fragment
     getFragmentManager()
         .beginTransaction()
         .replace(R.id.dashboard_frame, detailFragment, DetailFragment.TAG)
@@ -286,5 +283,10 @@ public class MainActivity extends AppCompatActivity
     } finally {
       Log.d(TAG, "Got response " + OSMXAPIClient.response());
     }
+  }
+
+  private void setupDatabase() {
+    Log.d(TAG, "Initializing the database");
+    mDatabaseTable = DatabaseTable.getInstance(this);
   }
 }

@@ -5,13 +5,17 @@ import com.google.maps.android.SphericalUtil;
 
 import org.osmdroid.util.GeoPoint;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Copyright 2016 Boloutare Doubeni
  */
-public class Coordinates {
+public class Coordinates implements Serializable {
+
+  static final long serialVersionUID = 1L;
+
   public final double mLongitude;
   public final double mLatitude;
 
@@ -40,8 +44,8 @@ public class Coordinates {
 
   // TODO: Dry these out
   public static LatLng getMins(List<LatLng> box) {
-    double minLat = Double.MAX_VALUE;
-    double minLon = Double.MAX_VALUE;
+    double minLat = Integer.MAX_VALUE;
+    double minLon = Integer.MAX_VALUE;
 
     for (LatLng coordinates : box) {
       if (coordinates.longitude < minLon) {

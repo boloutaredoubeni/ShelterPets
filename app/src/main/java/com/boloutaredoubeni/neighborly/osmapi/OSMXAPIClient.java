@@ -97,7 +97,6 @@ public class OSMXAPIClient {
         if (!response.isSuccessful()) {
           throw new IOException("Unexpected code " + response);
         }
-
         mResponse = response.body().string();
       }
     });
