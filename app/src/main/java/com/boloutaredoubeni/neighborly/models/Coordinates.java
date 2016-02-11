@@ -37,4 +37,36 @@ public class Coordinates {
     }
     return latLngList;
   }
+
+  // TODO: Dry these out
+  public static LatLng getMins(List<LatLng> box) {
+    double minLat = Double.MAX_VALUE;
+    double minLon = Double.MAX_VALUE;
+
+    for (LatLng coordinates : box) {
+      if (coordinates.longitude < minLon) {
+        minLon = coordinates.longitude;
+      }
+      if (coordinates.latitude < minLat) {
+        minLat = coordinates.latitude;
+      }
+    }
+    return new LatLng(minLat, minLat);
+  }
+
+  public static LatLng getMaxes(List<LatLng> box) {
+    double maxLat = Double.MIN_VALUE;
+    double maxLon = Double.MIN_VALUE;
+
+    for (LatLng coordinates : box) {
+      if (coordinates.longitude > maxLon) {
+        maxLon = coordinates.longitude;
+      }
+      if (coordinates.latitude > maxLat) {
+        maxLat = coordinates.latitude;
+      }
+    }
+
+    return new LatLng(maxLat, maxLon);
+  }
 }

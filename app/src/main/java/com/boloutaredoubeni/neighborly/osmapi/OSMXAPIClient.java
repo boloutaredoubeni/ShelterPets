@@ -1,5 +1,6 @@
 package com.boloutaredoubeni.neighborly.osmapi;
 
+import com.boloutaredoubeni.neighborly.models.Coordinates;
 import com.boloutaredoubeni.neighborly.models.Location;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -53,11 +54,12 @@ public class OSMXAPIClient {
 
   public static String buildBoxParams(final Location location) {
     final List<LatLng> box = location.getCoordinates().getBox();
-    // FIXME: use max and mins
-    final Double left = box.get(0).longitude;
-    final Double bottom = box.get(1).latitude;
-    final Double right = box.get(2).longitude;
-    final Double top = box.get(3).latitude;
+    final LatLng mins = Coordinates.getMins(box);
+    final LatLng maxes = Coordinates.getMaxes(box);
+    final Double left = mins.longitude;
+    final Double bottom = mins.latitude;
+    final Double right = maxes.longitude;
+    final Double top = maxes.latitude;
 
     return left + "," + bottom + "," + right + "," + top + "";
   }

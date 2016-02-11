@@ -1,5 +1,6 @@
 package com.boloutaredoubeni.neighborly.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -30,16 +31,19 @@ import java.util.List;
  */
 public class MapFragment extends Fragment {
 
-  private final String TAG = MapFragment.class.getCanonicalName();
+  public static final String TAG = MapFragment.class.getCanonicalName();
   private final int DEFAULT_ZOOM_LEVEL = 15;
 
   protected MapView mMapView;
   protected ItemizedOverlayWithFocus<OverlayItem> mOverlay;
   private ResourceProxy mResourceProxy;
+  private IMapController mController;
 
   /* package */ OnOverlayItemClickedListener mOnOverlayItemClickedListener;
 
   public MapFragment() {}
+
+  public IMapController getMapController() { return mController; }
 
   @Nullable
   @Override
@@ -56,17 +60,17 @@ public class MapFragment extends Fragment {
     mMapView.setTilesScaledToDpi(true);
     mResourceProxy = new ResourceProxyImpl(getActivity());
 
-    IMapController controller = mMapView.getController();
-    controller.setZoom(DEFAULT_ZOOM_LEVEL);
+    mController = mMapView.getController();
+    mController.setZoom(DEFAULT_ZOOM_LEVEL);
 
     List<OverlayItem> items = new ArrayList<>();
     // TODO: Add points based on the location from the server || db if valid
     // FIXME: Handle a null value
     final Location location =
         (Location)getArguments().getSerializable(MainActivity.USER_LOCATION);
-    controller.setCenter(location != null
-                             ? location.getCoordinates().asGeoPoint()
-                             : new GeoPoint(40.7398848, -73.9922705));
+    mController.setCenter(location != null
+                              ? location.getCoordinates().asGeoPoint()
+                              : new GeoPoint(40.7398848, -73.9922705));
     items.add(UserLocationOverlayItem.bindWith(location));
 
     mOverlay = new ItemizedOverlayWithFocus<>(
@@ -75,12 +79,8 @@ public class MapFragment extends Fragment {
           public boolean onItemSingleTapUp(final int index,
                                            final OverlayItem item) {
             Log.d(TAG, "Single tapped");
-            // TODO: display info in bottom screen
-            // 1. Send data to the detail fragment
-
-            // 2. pop the previous frag if its a detail for a marker
-            // 3. push the previous if its a summary frag
             sendLocationData(location);
+            // TODO: replace the map with the photo fragment
             return true;
           }
           @Override
@@ -102,6 +102,17 @@ public class MapFragment extends Fragment {
       mOnOverlayItemClickedListener = (OnOverlayItemClickedListener)context;
     } catch (ClassCastException ex) {
       throw new ClassCastException(context.toString() +
+                                   " must implement OnOverlayItemClicked");
+    }
+  }
+
+  @Override
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    try {
+      mOnOverlayItemClickedListener = (OnOverlayItemClickedListener)activity;
+    } catch (ClassCastException ex) {
+      throw new ClassCastException(activity.toString() +
                                    " must implement OnOverlayItemClicked");
     }
   }

@@ -1,10 +1,14 @@
 package com.boloutaredoubeni.neighborly.activities;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -16,17 +20,26 @@ import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
 import com.boloutaredoubeni.neighborly.fragments.DetailFragment;
 import com.boloutaredoubeni.neighborly.fragments.MapFragment;
 import com.boloutaredoubeni.neighborly.models.Location;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
+import org.osmdroid.util.GeoPoint;
 
 public class MainActivity extends AppCompatActivity
-    implements LocationListener, MapFragment.OnOverlayItemClickedListener {
+    implements LocationListener, MapFragment.OnOverlayItemClickedListener,
+               GoogleApiClient.ConnectionCallbacks,
+               GoogleApiClient.OnConnectionFailedListener {
 
   private static final String TAG = MainActivity.class.getCanonicalName();
+  private static final int REQUEST_LOCATION_PERMISSIONS = 1;
   private static final int MILE = 1609;
   private static final int TWENTY_MINS = 0x124F80;
   public static final String USER_LOCATION = "u53r10c4t10n";
 
   private LocationManager mLocationManager;
   private Location mUserLocation;
+  private GoogleApiClient mGoogleApiClient;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +48,7 @@ public class MainActivity extends AppCompatActivity
     Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
+    setupGoogleApi();
     setupUserLocation();
 
     FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
@@ -42,7 +56,7 @@ public class MainActivity extends AppCompatActivity
       @Override
       public void onClick(View view) {
         Snackbar.make(view, "Replace with your own action",
-                      Snackbar.LENGTH_LONG)
+            Snackbar.LENGTH_LONG)
             .setAction("Action", null)
             .show();
       }
@@ -74,8 +88,20 @@ public class MainActivity extends AppCompatActivity
     if (id == R.id.action_settings) {
       return true;
     }
-
+    // TODO: Implement search for recents, the db and from the web
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  protected void onStart() {
+    mGoogleApiClient.connect();
+    super.onStart();
+  }
+
+  @Override
+  protected void onStop() {
+    mGoogleApiClient.disconnect();
+    super.onStop();
   }
 
   // TODO: DRY these out
@@ -107,22 +133,54 @@ public class MainActivity extends AppCompatActivity
 
   private void setupUserLocation() {
     mLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
-    // TODO: handle permissions
+    requestLocationPermission();
     mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                                             TWENTY_MINS, MILE, this);
-    mUserLocation = new Location.Builder()
-                        .name("General Assembly")
-                        .coordinates(40.7398848, -73.9922705)
-                        .build();
+
+    android.location.Location lastLocation =
+        mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+    mUserLocation =
+        new Location.Builder()
+            .name("You are here")
+            .coordinates(lastLocation != null ? lastLocation.getLatitude()
+                                              : 40.7398848,
+                         lastLocation != null ? lastLocation.getLongitude()
+                                              : -73.9900818)
+            .build();
+  }
+
+  private void setupGoogleApi() {
+    if (mGoogleApiClient == null) {
+      mGoogleApiClient = new GoogleApiClient.Builder(this)
+                             .addConnectionCallbacks(this)
+                             .addOnConnectionFailedListener(this)
+                             .addApi(LocationServices.API)
+                             .build();
+    }
   }
 
   @Override
   public void onLocationChanged(android.location.Location location) {
     double latitude = location.getLatitude();
     double longitude = location.getLongitude();
-    mUserLocation.setCoordinates(latitude, longitude);
+
+      if (mUserLocation == null) {
+        mUserLocation = new Location.Builder()
+            .name("You are here")
+            .coordinates(latitude, longitude)
+            .build();
+      }
+      mUserLocation.setCoordinates(latitude, longitude);
 
     // TODO: Make sure the map and the details are updated
+    DetailFragment detailFragment = ((DetailFragment) getFragmentManager().findFragmentByTag(DetailFragment.TAG));
+    MapFragment mapFragment = ((MapFragment)getFragmentManager().findFragmentByTag(MapFragment.TAG));
+    if (detailFragment != null) {
+      detailFragment.updateLocation(mUserLocation);
+      mapFragment.getMapController()
+          .setCenter(new GeoPoint(latitude, longitude));
+    }
   }
 
   @Override
@@ -136,12 +194,77 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void update(Location location) {
-    DetailFragment fragment = new DetailFragment();
-    fragment.updateLocation(location);
+    DetailFragment detailFragment = new DetailFragment();
+    detailFragment.updateLocation(location);
+
+    //    PhotoViewFragment photoViewFragment = new PhotoViewFragment();
     // TODO: remove the detail fragment
     getFragmentManager()
         .beginTransaction()
-        .replace(R.id.dashboard_frame, fragment)
+        .replace(R.id.dashboard_frame, detailFragment, DetailFragment.TAG)
         .commit();
+
+    //    getFragmentManager()
+    //        .beginTransaction()
+    //        .replace(R.id.map_frame, photoViewFragment)
+    //        .commit();
   }
+
+  @Override
+  public void onConnected(Bundle bundle) {
+    requestLocationPermission();
+    android.location.Location lastLocation =
+        LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+    if (lastLocation != null) {
+      double latitude = lastLocation.getLatitude();
+      double longitude = lastLocation.getLongitude();
+      if (mUserLocation == null) {
+        mUserLocation = new Location.Builder()
+                            .name("You are here")
+                            .coordinates(latitude, longitude)
+                            .build();
+      }
+      mUserLocation.setCoordinates(latitude, longitude);
+    }
+  }
+
+  @Override
+  public void onConnectionSuspended(int i) {}
+
+  @Override
+  public void onConnectionFailed(ConnectionResult connectionResult) {}
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode,
+                                         @NonNull String[] permissions,
+                                         @NonNull int[] grantResults) {
+    switch (requestCode) {
+    case REQUEST_LOCATION_PERMISSIONS: {
+      if (grantResults.length > 0 &&
+          grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        // TODO: use that permission
+      }
+    }
+    }
+  }
+
+  private void requestLocationPermission() {
+    if (ActivityCompat.checkSelfPermission(
+        this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+        PackageManager.PERMISSION_GRANTED &&
+        ActivityCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+            PackageManager.PERMISSION_GRANTED) {
+      // FIXME: handle permission requesting in Android 6.0
+      if (ActivityCompat.shouldShowRequestPermissionRationale(
+          this, Manifest.permission_group.LOCATION)) {
+
+      } else {
+        ActivityCompat.requestPermissions(
+            this, new String[]{Manifest.permission_group.LOCATION},
+            REQUEST_LOCATION_PERMISSIONS);
+      }
+    }
+  }
+
 }

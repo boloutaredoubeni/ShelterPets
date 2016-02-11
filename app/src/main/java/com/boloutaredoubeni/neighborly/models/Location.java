@@ -52,6 +52,7 @@ public class Location implements Serializable {
   public boolean isFavorited() { return mFavorited; }
 
   private void toggleFavorited() { mFavorited = !mFavorited; }
+
   public static class Builder {
     private String mName;
     private Coordinates mCoordinates;

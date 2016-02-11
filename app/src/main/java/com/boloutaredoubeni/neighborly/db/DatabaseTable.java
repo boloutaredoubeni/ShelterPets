@@ -60,18 +60,15 @@ public class DatabaseTable {
 
   private static class CacheHelper extends SQLiteOpenHelper {
 
-    public CacheHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public CacheHelper(Context context, String name,
+                       SQLiteDatabase.CursorFactory factory, int version) {
       super(context, name, factory, version);
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-
-    }
+    public void onCreate(SQLiteDatabase db) {}
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-    }
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
   }
 }
