@@ -1,6 +1,7 @@
 package com.boloutaredoubeni.neighborly.activities;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -11,6 +12,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +22,7 @@ import com.boloutaredoubeni.neighborly.fragments.DashboardFragment;
 import com.boloutaredoubeni.neighborly.fragments.DetailFragment;
 import com.boloutaredoubeni.neighborly.fragments.MapFragment;
 import com.boloutaredoubeni.neighborly.models.Location;
+import com.boloutaredoubeni.neighborly.osmapi.OSMXAPIClient;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -34,7 +37,6 @@ public class MainActivity extends AppCompatActivity
   private static final String TAG = MainActivity.class.getCanonicalName();
   private static final int REQUEST_LOCATION_PERMISSIONS = 1;
   private static final int MILE = 1609;
-  private static final int TWENTY_MINS = 0x124F80;
   public static final String USER_LOCATION = "u53r10c4t10n";
 
   private LocationManager mLocationManager;
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity
       @Override
       public void onClick(View view) {
         Snackbar.make(view, "Replace with your own action",
-            Snackbar.LENGTH_LONG)
+                      Snackbar.LENGTH_LONG)
             .setAction("Action", null)
             .show();
       }
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity
       setupDashboardFragment();
     }
     setupMapFragment();
+    getApiData();
   }
 
   // FIXME: App crashes on location
@@ -134,8 +137,9 @@ public class MainActivity extends AppCompatActivity
   private void setupUserLocation() {
     mLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
     requestLocationPermission();
-    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                                            TWENTY_MINS, MILE, this);
+    mLocationManager.requestLocationUpdates(
+        LocationManager.GPS_PROVIDER, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+        MILE, this);
 
     android.location.Location lastLocation =
         mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -165,22 +169,26 @@ public class MainActivity extends AppCompatActivity
     double latitude = location.getLatitude();
     double longitude = location.getLongitude();
 
-      if (mUserLocation == null) {
-        mUserLocation = new Location.Builder()
-            .name("You are here")
-            .coordinates(latitude, longitude)
-            .build();
-      }
-      mUserLocation.setCoordinates(latitude, longitude);
+    if (mUserLocation == null) {
+      mUserLocation = new Location.Builder()
+                          .name("You are here")
+                          .coordinates(latitude, longitude)
+                          .build();
+    }
+    mUserLocation.setCoordinates(latitude, longitude);
 
     // TODO: Make sure the map and the details are updated
-    DetailFragment detailFragment = ((DetailFragment) getFragmentManager().findFragmentByTag(DetailFragment.TAG));
-    MapFragment mapFragment = ((MapFragment)getFragmentManager().findFragmentByTag(MapFragment.TAG));
+    DetailFragment detailFragment =
+        ((DetailFragment)getFragmentManager().findFragmentByTag(
+            DetailFragment.TAG));
+    MapFragment mapFragment =
+        ((MapFragment)getFragmentManager().findFragmentByTag(MapFragment.TAG));
     if (detailFragment != null) {
       detailFragment.updateLocation(mUserLocation);
-      mapFragment.getMapController()
-          .setCenter(new GeoPoint(latitude, longitude));
+      mapFragment.getMapController().setCenter(
+          new GeoPoint(latitude, longitude));
     }
+    getApiData();
   }
 
   @Override
@@ -249,22 +257,34 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void requestLocationPermission() {
+    Log.d(TAG, "requesting location permisions");
     if (ActivityCompat.checkSelfPermission(
-        this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-        PackageManager.PERMISSION_GRANTED &&
+            this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+            PackageManager.PERMISSION_GRANTED &&
         ActivityCompat.checkSelfPermission(
             this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
             PackageManager.PERMISSION_GRANTED) {
       // FIXME: handle permission requesting in Android 6.0
       if (ActivityCompat.shouldShowRequestPermissionRationale(
-          this, Manifest.permission_group.LOCATION)) {
+              this, Manifest.permission_group.LOCATION)) {
 
       } else {
         ActivityCompat.requestPermissions(
-            this, new String[]{Manifest.permission_group.LOCATION},
+            this, new String[] {Manifest.permission_group.LOCATION},
             REQUEST_LOCATION_PERMISSIONS);
       }
     }
   }
 
+  private void getApiData() {
+    Log.d(TAG, "Starting Http request");
+    try {
+      OSMXAPIClient.setLocation(mUserLocation);
+      OSMXAPIClient.getInstance().run();
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      Log.d(TAG, "Got response " + OSMXAPIClient.response());
+    }
+  }
 }

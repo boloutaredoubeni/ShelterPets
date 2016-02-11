@@ -31,8 +31,8 @@ public class Coordinates {
     final LatLng coordinates = this.asLatLng();
 
     for (Direction direction : Direction.values()) {
-      final LatLng position = SphericalUtil.computeOffset(
-          coordinates, DISTANCE, direction.getHeading());
+      LatLng position = SphericalUtil.computeOffset(coordinates, DISTANCE,
+                                                    direction.getHeading());
       latLngList.add(position);
     }
     return latLngList;
@@ -51,12 +51,12 @@ public class Coordinates {
         minLat = coordinates.latitude;
       }
     }
-    return new LatLng(minLat, minLat);
+    return new LatLng(minLat, minLon);
   }
 
   public static LatLng getMaxes(List<LatLng> box) {
-    double maxLat = Double.MIN_VALUE;
-    double maxLon = Double.MIN_VALUE;
+    double maxLat = Integer.MIN_VALUE;
+    double maxLon = Integer.MIN_VALUE;
 
     for (LatLng coordinates : box) {
       if (coordinates.longitude > maxLon) {
