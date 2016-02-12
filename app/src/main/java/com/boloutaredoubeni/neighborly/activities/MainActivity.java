@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -29,6 +30,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import org.osmdroid.util.GeoPoint;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
     implements LocationListener, MapFragment.OnOverlayItemClickedListener,
@@ -44,6 +54,11 @@ public class MainActivity extends AppCompatActivity
   private Location mUserLocation;
   private GoogleApiClient mGoogleApiClient;
   private DatabaseTable mDatabaseTable;
+  protected List<Location> mPlaces;
+
+  public List<Location> getPlaces() {
+    return mPlaces;
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +75,7 @@ public class MainActivity extends AppCompatActivity
       @Override
       public void onClick(View view) {
         Snackbar.make(view, "Replace with your own action",
-                      Snackbar.LENGTH_LONG)
+            Snackbar.LENGTH_LONG)
             .setAction("Action", null)
             .show();
       }
@@ -263,7 +278,7 @@ public class MainActivity extends AppCompatActivity
             PackageManager.PERMISSION_GRANTED) {
       // FIXME: handle permission requesting in Android 6.0
       if (ActivityCompat.shouldShowRequestPermissionRationale(
-              this, Manifest.permission_group.LOCATION)) {
+              this, Manifest.permission.ACCESS_FINE_LOCATION)) {
 
       } else {
         ActivityCompat.requestPermissions(
@@ -277,7 +292,7 @@ public class MainActivity extends AppCompatActivity
     Log.d(TAG, "Starting Http request");
     try {
       OSMXAPIClient.setLocation(mUserLocation);
-      OSMXAPIClient.getInstance().run();
+      new OSMXMLParserTask().execute();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -286,5 +301,140 @@ public class MainActivity extends AppCompatActivity
   private void setupDatabase() {
     Log.d(TAG, "Initializing the database");
     mDatabaseTable = DatabaseTable.getInstance(this);
+  }
+
+  class OSMXMLParserTask extends AsyncTask<Void, Integer, List<Location>> {
+
+    private final String TAG = OSMXMLParserTask.class.getCanonicalName();
+    private final String NAMESPACE = null;
+
+
+    @Override
+    protected List<Location> doInBackground(Void... noParams) {
+      List<Location> locations = new ArrayList<>();
+      try {
+        OSMXAPIClient.getInstance().run();
+        InputStream in =
+            new ByteArrayInputStream(OSMXAPIClient.getResponse().getBytes());
+        locations = parse(in);
+        Log.d(TAG, "Running in the background");
+      } catch (Exception ex) {
+        Log.e(TAG, ex.getMessage());
+      }
+      return locations;
+    }
+
+    @Override
+    protected void onPostExecute(List<Location> locations) {
+      super.onPostExecute(locations);
+      Log.d(TAG, "Running post execute stuff");
+      mPlaces = locations;
+    }
+
+    private List<Location> parse(InputStream in)
+        throws XmlPullParserException, IOException {
+      try {
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        XmlPullParser parser = factory.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(in, null);
+        parser.nextTag();
+        return readNodes(parser);
+      } finally {
+        in.close();
+      }
+    }
+
+    private List<Location> readNodes(XmlPullParser parser)
+        throws IOException, XmlPullParserException {
+      List<Location> locations = new ArrayList<>();
+      parser.require(XmlPullParser.START_TAG, NAMESPACE, "osm");
+      while (parser.next() != XmlPullParser.END_DOCUMENT) {
+        if (parser.getEventType() != XmlPullParser.START_TAG) {
+          continue;
+        }
+        String name = parser.getName();
+        switch (name) {
+        case "node": {
+          Location location = readTags(parser);
+          if (location != null){
+            locations.add(location);
+          }
+          break;
+        }
+        default:
+          skip(parser);
+        }
+      }
+      return locations;
+    }
+
+    private Location readTags(XmlPullParser parser)
+        throws IOException, XmlPullParserException {
+
+      Location.Builder builder = new Location.Builder();
+      double latitude =
+          Double.valueOf(parser.getAttributeValue(NAMESPACE, "lat"));
+      double longitude =
+          Double.valueOf(parser.getAttributeValue(NAMESPACE, "lon"));
+
+      builder.coordinates(latitude, longitude);
+      parser.require(XmlPullParser.START_TAG, NAMESPACE, "node");
+
+      int depth = 1;
+      while (depth != 0) {
+        if (parser.getEventType() != XmlPullParser.START_TAG) {
+          depth++;
+          continue;
+        } else if (parser.getEventType() != XmlPullParser.START_TAG) {
+          depth--;
+          continue;
+        }
+
+        if (parser.getName().equals("tag")) {
+          String key = parser.getAttributeValue(NAMESPACE, "k");
+          String value = parser.getAttributeValue(NAMESPACE, "v");
+          Log.d("IT WORKS", "Got " + key + " = " + value);
+
+          switch (key) {
+            case "name":
+              builder.name(value);
+              break;
+            case "amenity":
+            case "shop":
+              builder.amenity(value);
+              break;
+            case "website":
+              builder.url(value);
+              break;
+            case "opening_hours":
+              builder.hours(value);
+              break;
+            default:
+              break;
+          }
+        }
+      }
+
+      return builder.build();
+    }
+
+    private void skip(XmlPullParser parser)
+        throws XmlPullParserException, IOException {
+      if (parser.getEventType() != XmlPullParser.START_TAG) {
+        throw new IllegalStateException();
+      }
+      int depth = 1;
+      while (depth != 0) {
+        switch (parser.next()) {
+        case XmlPullParser.END_TAG:
+          depth--;
+          break;
+        case XmlPullParser.START_TAG:
+          depth++;
+          break;
+        }
+      }
+    }
   }
 }

@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 
 import com.boloutaredoubeni.neighborly.activities.MainActivity;
 import com.boloutaredoubeni.neighborly.models.Location;
-import com.boloutaredoubeni.neighborly.osmapi.OSMXAPIClient;
 import com.boloutaredoubeni.neighborly.views.UserLocationOverlayItem;
 
 import org.osmdroid.ResourceProxy;
@@ -66,9 +65,7 @@ public class MapFragment extends Fragment {
 
     mController = mMapView.getController();
     mController.setZoom(DEFAULT_ZOOM_LEVEL);
-
-    mPlaces = OSMXAPIClient.getPlaces();
-
+    List<Location> places = ((MainActivity)getActivity()).getPlaces();
     mOverlayItems = new ArrayList<>();
     // TODO: Add points based on the location from the server || db if valid
     // FIXME: Handle a null value
