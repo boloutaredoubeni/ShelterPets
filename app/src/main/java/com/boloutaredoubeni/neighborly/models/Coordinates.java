@@ -19,7 +19,8 @@ public class Coordinates implements Serializable {
   public final double mLongitude;
   public final double mLatitude;
 
-  final static double DISTANCE = 3218.69;
+  //  final static double DISTANCE = 1609.34;
+  final static double DISTANCE = 500;
 
   Coordinates(final double latitude, final double longitude) {
     mLongitude = longitude;

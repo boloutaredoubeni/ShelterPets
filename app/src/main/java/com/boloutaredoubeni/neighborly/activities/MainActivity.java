@@ -280,8 +280,6 @@ public class MainActivity extends AppCompatActivity
       OSMXAPIClient.getInstance().run();
     } catch (Exception e) {
       e.printStackTrace();
-    } finally {
-      Log.d(TAG, "Got response " + OSMXAPIClient.response());
     }
   }
 

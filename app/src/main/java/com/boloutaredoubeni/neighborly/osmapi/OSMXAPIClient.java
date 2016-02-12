@@ -1,14 +1,18 @@
 package com.boloutaredoubeni.neighborly.osmapi;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.boloutaredoubeni.neighborly.models.Coordinates;
 import com.boloutaredoubeni.neighborly.models.Location;
 import com.google.android.gms.maps.model.LatLng;
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
@@ -30,6 +34,7 @@ public class OSMXAPIClient {
   public final static String VERSION = "0.6";
   final static String API_URL =
       "http://api06.dev.openstreetmap.org/api/" + VERSION + "/map?";
+  static private boolean mIsRunning;
 
   private OkHttpClient mClient;
   private static Location mOrigin;
@@ -70,9 +75,23 @@ public class OSMXAPIClient {
     mOrigin = origin;
   }
 
-  @Nullable
-  public static String response() {
-    return INSTANCE.mResponse;
+  public static List<Location> getPlaces() {
+    if (mIsRunning) {
+      return null;
+    }
+    if (INSTANCE.mResponse == null) {
+      return null;
+    }
+    List<Location> locations = new ArrayList<>();
+    try {
+      mIsRunning = true;
+      InputStream in = new ByteArrayInputStream(INSTANCE.mResponse.getBytes());
+      locations = OSMXMLParser.parse(in);
+    } catch (XmlPullParserException | IOException ex) {
+      mIsRunning = false;
+      ex.printStackTrace();
+    }
+    return locations;
   }
 
   public void run() throws Exception {
@@ -97,7 +116,9 @@ public class OSMXAPIClient {
         if (!response.isSuccessful()) {
           throw new IOException("Unexpected code " + response);
         }
+
         mResponse = response.body().string();
+        //        Log.d(TAG, mResponse);
       }
     });
   }

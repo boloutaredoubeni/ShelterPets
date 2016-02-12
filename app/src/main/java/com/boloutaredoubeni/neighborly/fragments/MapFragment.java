@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import com.boloutaredoubeni.neighborly.activities.MainActivity;
 import com.boloutaredoubeni.neighborly.models.Location;
+import com.boloutaredoubeni.neighborly.osmapi.OSMXAPIClient;
 import com.boloutaredoubeni.neighborly.views.UserLocationOverlayItem;
 
 import org.osmdroid.ResourceProxy;
@@ -34,8 +35,11 @@ public class MapFragment extends Fragment {
   public static final String TAG = MapFragment.class.getCanonicalName();
   private final int DEFAULT_ZOOM_LEVEL = 15;
 
+  private List<Location> mPlaces;
+
   protected MapView mMapView;
   protected ItemizedOverlayWithFocus<OverlayItem> mOverlay;
+  protected List<OverlayItem> mOverlayItems;
   private ResourceProxy mResourceProxy;
   private IMapController mController;
 
@@ -63,7 +67,9 @@ public class MapFragment extends Fragment {
     mController = mMapView.getController();
     mController.setZoom(DEFAULT_ZOOM_LEVEL);
 
-    List<OverlayItem> items = new ArrayList<>();
+    mPlaces = OSMXAPIClient.getPlaces();
+
+    mOverlayItems = new ArrayList<>();
     // TODO: Add points based on the location from the server || db if valid
     // FIXME: Handle a null value
     final Location location =
@@ -71,10 +77,11 @@ public class MapFragment extends Fragment {
     mController.setCenter(location != null
                               ? location.getCoordinates().asGeoPoint()
                               : new GeoPoint(40.7398848, -73.9922705));
-    items.add(UserLocationOverlayItem.bindWith(location));
+    mOverlayItems.add(UserLocationOverlayItem.bindWith(location));
 
     mOverlay = new ItemizedOverlayWithFocus<>(
-        items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+        mOverlayItems,
+        new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
           @Override
           public boolean onItemSingleTapUp(final int index,
                                            final OverlayItem item) {
@@ -89,7 +96,8 @@ public class MapFragment extends Fragment {
             Log.d(TAG, "Long Press");
             return false;
           }
-        }, mResourceProxy);
+        },
+        mResourceProxy);
     mOverlay.setFocusItemsOnTap(true);
 
     mMapView.getOverlays().add(mOverlay);
@@ -122,6 +130,7 @@ public class MapFragment extends Fragment {
     mMapView.onDetach();
     mMapView = null;
     mOnOverlayItemClickedListener = null;
+    mResourceProxy = null;
     super.onDetach();
   }
 
