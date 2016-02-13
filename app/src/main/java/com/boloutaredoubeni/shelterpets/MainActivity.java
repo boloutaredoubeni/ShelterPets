@@ -73,8 +73,6 @@ public class MainActivity extends AppCompatActivity {
           return  Color.RED;
         case "BLACK":
           return Color.BLACK;
-        case "WHITE":
-          return Color.WHITE;
         case "YELLOW":
           return Color.YELLOW;
         case "GREEN":
