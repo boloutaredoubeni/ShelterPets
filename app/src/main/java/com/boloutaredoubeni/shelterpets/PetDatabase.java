@@ -17,7 +17,7 @@ public class PetDatabase extends SQLiteOpenHelper {
   private static final int DATABASE_VERSION = 1;
   private static final String TABLE_NAME = "pets";
 
-  private static final String COL_ID = "_id";
+  public  static final String COL_ID = "_id";
   public static final String COL_SPECIES = "species";
 
   private static PetDatabase INSTANCE = null;
@@ -62,6 +62,8 @@ public class PetDatabase extends SQLiteOpenHelper {
 
   public Cursor searchPets(String term) {
     String whereParam = COL_SPECIES + " LIKE '%" + term + "%'";
-    return getReadableDatabase().query(TABLE_NAME, new String[]{COL_ID, COL_SPECIES}, whereParam, null, null, null, null);
+    return getReadableDatabase().query(TABLE_NAME,
+                                       new String[] {COL_ID, COL_SPECIES},
+                                       whereParam, null, null, null, null);
   }
 }
