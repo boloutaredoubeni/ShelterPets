@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.boloutaredoubeni.shelterpets.SquareImageView
+    <com.boloutaredoubeni.shelterpets.views.SquareImageView
         android:id="@+id/card_image"
         android:src="#80ffffff"
         android:layout_centerInParent="true"

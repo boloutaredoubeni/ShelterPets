@@ -1,4 +1,4 @@
-package com.boloutaredoubeni.shelterpets;
+package com.boloutaredoubeni.shelterpets.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,7 +17,7 @@ public class PetDatabase extends SQLiteOpenHelper {
   private static final int DATABASE_VERSION = 1;
   private static final String TABLE_NAME = "pets";
 
-  public  static final String COL_ID = "_id";
+  public static final String COL_ID = "_id";
   public static final String COL_SPECIES = "species";
 
   private static PetDatabase INSTANCE = null;

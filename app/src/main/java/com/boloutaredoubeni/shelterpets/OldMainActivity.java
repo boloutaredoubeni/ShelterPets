@@ -21,6 +21,9 @@ import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.boloutaredoubeni.shelterpets.activities.PetInfoActivity;
+import com.boloutaredoubeni.shelterpets.db.PetDatabase;
+
 public class OldMainActivity extends AppCompatActivity {
 
   private ListView mListView;
@@ -83,7 +86,8 @@ public class OldMainActivity extends AppCompatActivity {
                               long id) {
         Intent intent = new Intent(OldMainActivity.this, PetInfoActivity.class);
         cursor.moveToPosition(position);
-        intent.putExtra("id", cursor.getInt(cursor.getColumnIndexOrThrow(PetDatabase.COL_ID)));
+        intent.putExtra("id", cursor.getInt(cursor.getColumnIndexOrThrow(
+                                  PetDatabase.COL_ID)));
         startActivity(intent);
       }
     });
